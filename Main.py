@@ -174,6 +174,7 @@ def solveThread():
     process.daemon = True
     process.start()
 
+
 def choseNameWindow():
     global WINDOW
     pygame.init()
@@ -186,18 +187,44 @@ def choseNameWindow():
     fontMedium = pygame.font.SysFont("ocraextended", 40)
     fontSmall = pygame.font.SysFont("ocraextended", 20)
     running = True #Estado de la ventana
-    input_box1 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 200, 100, 50)
-    input_box2 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 100, 50)
+    # input_box1 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 200, 120, 120)
+    # input_box2 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box3 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box4 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box5 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box6 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box7 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box8 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box9 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box10 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box11 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box12 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box13 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box14 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box15 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+    # input_box16 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
+
+    input_boxes = []
+    xValueInput = 200
+    yValueInput = 150
+    for i in range(0,4):
+        for j in range(0,4):
+            input_boxes.append(pygame.Rect((xValueInput + (j * 120) - 50, yValueInput + (i * 120) - 50, 120, 120)))
+    
     color_inactive = (193, 193, 193)
     color_active = BLACK
-    color1 = color_inactive
-    color2 = color_inactive
-    active1 = False
-    active2 = False
-    text1 = 'Player 1'
-    text2 = 'Player 2'
-    name1 = ""
-    name2 = ""
+
+    colors = []
+    active = []
+    texts = []
+    names = []
+    matrixValues = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    random.shuffle(matrixValues)
+    for i in range(0,16):
+        colors.append(color_inactive)
+        active.append(False)
+        texts.append(str(matrixValues[i]))
+        names.append("")
 
     while running:
         for event in pygame.event.get():
@@ -206,37 +233,24 @@ def choseNameWindow():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if active1:
-                    if event.key == pygame.K_BACKSPACE:
-                        text1 = text1[:-1]
-                    elif len(text1) < 9:
-                        text1 += event.unicode
-            if active2:
-                if event.key == pygame.K_BACKSPACE:
-                    text2 = text2[:-1]
-                elif len(text2) < 9:
-                    text2 += event.unicode
+                for i in range(0, len(input_boxes)):
+                    if active[i]:
+                        if event.key == pygame.K_BACKSPACE:
+                            texts[i] = texts[i][:-1]
+                        elif len(texts[i]) < 2:
+                            texts[i] += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
-				# If the user clicked on the input_box rect.
-                if input_box1.collidepoint(event.pos):
-					# Toggle the active variable.
-                    active1 = not active1
-                    if text1 == 'Player 1':
-                        text1=''
-                else:
-                    active1 = False
-				# Change the current color of the input box.
-                color1 = color_active if active1 else color_inactive
-
-                if input_box2.collidepoint(event.pos):
-					# Toggle the active variable.
-                    active2 = not active2
-                    if text2 == 'Player 2':
-                        text2=''
-                else:
-                    active2 = False
-				# Change the current color of the input box.
-                color2 = color_active if active2 else color_inactive
+                # If the user clicked on the input_box rect.
+                for i in range(0, len(input_boxes)):
+                    if input_boxes[i].collidepoint(event.pos):
+                        # Toggle the active variable.
+                        active[i] = not active[i]
+                        if texts[i] == str(matrixValues[i]):
+                            texts[i]=''
+                    else:
+                        active[i] = False
+                    # Change the current color of the input box.
+                    colors[i] = color_active if active[i] else color_inactive
 
         surface.fill(WHITE)
 
@@ -245,35 +259,14 @@ def choseNameWindow():
         surface.blit(titleMessage, titleMessage_rect)
 
         if WINDOW == 0:
+            for i in range(0, len(input_boxes)):
+                txt_surface = fontMedium.render(texts[i], True, colors[i])
+                width = max(120, txt_surface.get_width())
+                input_boxes[i].w = width
+                surface.blit(txt_surface, (input_boxes[i].x, input_boxes[i].y))
+                pygame.draw.rect(surface, colors[i], input_boxes[i], 2)
+                names[i] = texts[i] if texts[i] != '' else texts[i]
 
-            name1Message = fontSmall.render("Nombre jugador 1", True, BLACK)
-            surface.blit(name1Message, (SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 230))
-
-            name1Message = fontSmall.render("Nombre jugador 2", True, BLACK)
-            surface.blit(name1Message, (SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 70))
-
-            # Render the current text.
-            txt_surface1 = fontMedium.render(text1, True, color1)
-            # Resize the box if the text is too long.
-            width1 = max(200, txt_surface1.get_width()+10)
-            input_box1.w = width1
-            # Blit the text.
-            surface.blit(txt_surface1, (input_box1.x+5, input_box1.y+5))
-            # Blit the input_box rect.
-            pygame.draw.rect(surface, color1, input_box1, 2)
-
-            # Render the current text.
-            txt_surface2 = fontMedium.render(text2, True, color2)
-            # Resize the box if the text is too long.
-            width2 = max(200, txt_surface2.get_width() + 10)
-            input_box2.w = width2
-            # Blit the text.
-            surface.blit(txt_surface2, (input_box2.x + 5, input_box2.y + 5))
-            # Blit the input_box rect.
-            pygame.draw.rect(surface, color2, input_box2, 2)
-
-            name1 = text1 if text1 != '' else "Player 1"
-            name2 = text2 if text2 != '' else "Player 2"
             button("Inicio", 300, 700, 200, 50, BLUE, LIGHT_BLUE,30, surface, solveThread)
         elif WINDOW == 1:
             titleMessage = font.render("CARGANDO", True, BLACK)
