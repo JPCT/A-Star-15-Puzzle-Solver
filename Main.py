@@ -259,7 +259,7 @@ def choseNameWindow():
                     if active[i]:
                         if event.key == pygame.K_BACKSPACE:
                             texts[i] = str(texts[i])[:-1]
-                        elif len(texts[i]) < 2:
+                        elif len(str(texts[i])) < 2:
                             texts[i] += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
                 for i in range(0, len(input_boxes)):
@@ -290,7 +290,7 @@ def choseNameWindow():
             errorMessage_rect = errorMessage.get_rect(center=(SCREEN_WIDTH/2, 650))
             surface.blit(errorMessage, errorMessage_rect)
 
-            button("Inicio", 300, 700, 200, 50, BLUE, LIGHT_BLUE,30, surface, solveThread, texts)
+            button("Iniciar", 300, 700, 200, 50, BLUE, LIGHT_BLUE,30, surface, solveThread, texts)
         elif WINDOW == 1:
             if TIME_SEARCHING % 2 == 0: 
                 searchingMessage = fontMedium.render("Buscando la solución más optima...", True, BLACK)
@@ -338,7 +338,7 @@ def choseNameWindow():
                             continueMessage = fontBig.render(str(start[i][j]), True, RED)
                             surface.blit(continueMessage, (xValue + (j * 120), yValue + (i * 120)))
 
-            complexityMessage = fontSmall.render("Complejidad heuristica " + str(START_COMPLEXITY), True, BLACK)
+            complexityMessage = fontSmall.render("Complejidad heuristica: " + str(START_COMPLEXITY), True, BLACK)
             complexityMessage_rect = complexityMessage.get_rect(center=(SCREEN_WIDTH/2, 620))
             surface.blit(complexityMessage, complexityMessage_rect)
 
