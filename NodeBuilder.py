@@ -1,15 +1,7 @@
-# -*- coding: UTF-8 -*-
 from Node import Node
 
 class NodeBuilder:
-    """
-    Build child nodes for 15-puzzle
-    """
-
     def getChildNodes(self, node):
-        """
-        Return list of valid child nodes
-        """
         children = []
         iSpace, jSpace = node.getCoordByValue(0)
         for i in range(-1, 2):

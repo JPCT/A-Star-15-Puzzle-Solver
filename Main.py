@@ -1,4 +1,3 @@
-# -*- coding: UTF-8 -*-
 import time
 from ManhattanDistance import ManhattanDistance
 from AStar import AStar
@@ -7,7 +6,7 @@ from pprint import pprint
 import pygame,sys, random
 from threading import Thread
 from pygame.locals import *
-
+import collections
 
 WHITE = (255,255,255)
 BLACK = (0,0,0)
@@ -30,7 +29,11 @@ start = [
 moveName = ""
 lastMoveVal = None
 WINDOW = 0
-
+ERROR_MESSAGE = ""
+TIME_SEARCHING = 0
+SOLUTION_FINDED = False
+MOVEMENTS_NEEDED = 0
+START_COMPLEXITY = 0
 
 def getZeroPosition():
     global start
@@ -135,74 +138,93 @@ def button(msg,x,y,w,h,ic,ac, fontSize, gameDisplay, action=None, parameter=None
 	textRect.center = ( (x+(w/2)), (y+(h/2)) )
 	gameDisplay.blit(textSurf, textRect)
 
+def timeCounterThread():
+    global TIME_SEARCHING, SOLUTION_FINDED
+    while not SOLUTION_FINDED:
+        TIME_SEARCHING += 1
+        pygame.time.delay(1000)
+
 
 def solve():
-    global start, result, WINDOW
+    global start, WINDOW, SOLUTION_FINDED, MOVEMENTS_NEEDED, START_COMPLEXITY
+
+    process = Thread(target = timeCounterThread, name = "Thread TimeCounter")
+    process.daemon = True
+    process.start()
+
     heuristic = ManhattanDistance()
     astar = AStar(heuristic)
 
-
-    startTime = time.time()
     startComplexity = heuristic.compute(
         Node(start, [], None)
     )
 
     result = astar.solve(start)
 
+    SOLUTION_FINDED = True
+
     if result is None:
-        print('No solution found')
+        print('No se encontro solución en ' + TIME_SEARCHING + " segundos")
+        WINDOW = 2
+        exit()
     else:
         WINDOW = 2
-        pprint(result)
-        
+
         process = Thread(target = calculateMove, name = "Thread #", args = (result,))
-        #daemon: indica si quiero que los hilos mueran cuando el programa se cierre
         process.daemon = True
         process.start()
 
+        START_COMPLEXITY = startComplexity
+        MOVEMENTS_NEEDED = len(result)
+
+
+def verifyValues(values):
+    expectedValues = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    for i in range(0,len(values)):
+        try:
+            values[i] = int(values[i])
+        except:
+            return (False, "Valor incorrecto (" + values[i] + ")")
         
-        print('Heuristic said at least %d moves were needed.' % startComplexity)
-        print('Actually solution is %d moves away. Best solution found guaranteed!' % len(result))
-        print('Solved in %d seconds.' % (time.time() - startTime))
+    if not (collections.Counter(expectedValues) == collections.Counter(values)):
+        return (False, "No fueron indicados todos los números requeridos 0-15")
+    return (True, "Exito")
 
-def solveThread():
-    global WINDOW
+def fillMatrix(values):
+    global start
+    iterator = 0
+    for i in range(0, 4):
+        for j in range(0, 4):
+            start[i][j] = values[iterator]
+            iterator += 1
+
+def solveThread(values):
+    global WINDOW, ERROR_MESSAGE
     WINDOW = 1
+    tuple = verifyValues(values)
+    
+    if tuple[0] == False:
+        ERROR_MESSAGE = tuple[1]
+        WINDOW = 0
+        return
+    fillMatrix(values)
 
-    process = Thread(target = solve, name = "Thread #")
-    #daemon: indica si quiero que los hilos mueran cuando el programa se cierre
+    process = Thread(target = solve, name = "Thread Solve")
     process.daemon = True
     process.start()
 
 
 def choseNameWindow():
-    global WINDOW
+    global WINDOW, ERROR_MESSAGE, TIME_SEARCHING, START_COMPLEXITY
     pygame.init()
 
     surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("Proyecto: 15-Puzzle")
     running = True #Estado de la ventana
-    font = pygame.font.SysFont("italic", 60)
-    fontBig = pygame.font.SysFont("ocraextended", 60)
-    fontMedium = pygame.font.SysFont("ocraextended", 40)
-    fontSmall = pygame.font.SysFont("ocraextended", 20)
+    fontBig = pygame.font.SysFont("italic", 60)
+    fontMedium = pygame.font.SysFont("italic", 40)
+    fontSmall = pygame.font.SysFont("italic", 30)
     running = True #Estado de la ventana
-    # input_box1 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 - 200, 120, 120)
-    # input_box2 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box3 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box4 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box5 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box6 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box7 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box8 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box9 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box10 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box11 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box12 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box13 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box14 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box15 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
-    # input_box16 = pygame.Rect(SCREEN_WIDTH/2 - 100, SCREEN_HEIGHT/2 + 100, 120, 50)
 
     input_boxes = []
     xValueInput = 200
@@ -236,48 +258,62 @@ def choseNameWindow():
                 for i in range(0, len(input_boxes)):
                     if active[i]:
                         if event.key == pygame.K_BACKSPACE:
-                            texts[i] = texts[i][:-1]
+                            texts[i] = str(texts[i])[:-1]
                         elif len(texts[i]) < 2:
                             texts[i] += event.unicode
             if event.type == pygame.MOUSEBUTTONDOWN:
-                # If the user clicked on the input_box rect.
                 for i in range(0, len(input_boxes)):
                     if input_boxes[i].collidepoint(event.pos):
-                        # Toggle the active variable.
                         active[i] = not active[i]
                         if texts[i] == str(matrixValues[i]):
                             texts[i]=''
                     else:
                         active[i] = False
-                    # Change the current color of the input box.
                     colors[i] = color_active if active[i] else color_inactive
 
         surface.fill(WHITE)
 
-        titleMessage = font.render("15-Puzzle", True, BLACK)
+        titleMessage = fontBig.render("15-Puzzle", True, BLACK)
         titleMessage_rect = titleMessage.get_rect(center=(SCREEN_WIDTH/2, 50))
         surface.blit(titleMessage, titleMessage_rect)
 
         if WINDOW == 0:
             for i in range(0, len(input_boxes)):
-                txt_surface = fontMedium.render(texts[i], True, colors[i])
+                txt_surface = fontMedium.render(str(texts[i]), True, colors[i])
                 width = max(120, txt_surface.get_width())
                 input_boxes[i].w = width
-                surface.blit(txt_surface, (input_boxes[i].x, input_boxes[i].y))
+                surface.blit(txt_surface, (input_boxes[i].x + 50, input_boxes[i].y + 50))
                 pygame.draw.rect(surface, colors[i], input_boxes[i], 2)
                 names[i] = texts[i] if texts[i] != '' else texts[i]
 
-            button("Inicio", 300, 700, 200, 50, BLUE, LIGHT_BLUE,30, surface, solveThread)
+            errorMessage = fontSmall.render(ERROR_MESSAGE, True, RED)
+            errorMessage_rect = errorMessage.get_rect(center=(SCREEN_WIDTH/2, 650))
+            surface.blit(errorMessage, errorMessage_rect)
+
+            button("Inicio", 300, 700, 200, 50, BLUE, LIGHT_BLUE,30, surface, solveThread, texts)
         elif WINDOW == 1:
-            titleMessage = font.render("CARGANDO", True, BLACK)
-            titleMessage_rect = titleMessage.get_rect(center=(SCREEN_WIDTH/2, 400))
-            surface.blit(titleMessage, titleMessage_rect)
+            if TIME_SEARCHING % 2 == 0: 
+                searchingMessage = fontMedium.render("Buscando la solución más optima...", True, BLACK)
+                searchingMessage_rect = (170, 400, 50, 50)
+                surface.blit(searchingMessage, searchingMessage_rect)
+            else:
+                searchingMessage = fontMedium.render("Buscando la solución más optima.", True, BLACK)
+                searchingMessage_rect = (170, 400, 50, 50)
+                surface.blit(searchingMessage, searchingMessage_rect)
+
+            timeLabelMessage = fontSmall.render("Tiempo transcurrido", True, BLACK)
+            timeLabelMessage_rect = timeLabelMessage.get_rect(center=(SCREEN_WIDTH/2, 600))
+            surface.blit(timeLabelMessage, timeLabelMessage_rect)
+
+            timeMessage = fontSmall.render(str(TIME_SEARCHING) + " segundos", True, BLACK)
+            timeMessage_rect = timeMessage.get_rect(center=(SCREEN_WIDTH/2, 650))
+            surface.blit(timeMessage, timeMessage_rect)
         else:
-            continueMessage = font.render(moveName, True, BLACK)
-            continueMessage_rect = continueMessage.get_rect(center=(SCREEN_WIDTH/2, 720))
+            continueMessage = fontBig.render(moveName, True, BLACK)
+            continueMessage_rect = continueMessage.get_rect(center=(SCREEN_WIDTH/2, 770))
             surface.blit(continueMessage, continueMessage_rect)
 
-            titleMessage = font.render("15-Puzzle", True, BLACK)
+            titleMessage = fontBig.render("15-Puzzle", True, BLACK)
             titleMessage_rect = titleMessage.get_rect(center=(SCREEN_WIDTH/2, 50))
             surface.blit(titleMessage, titleMessage_rect)
 
@@ -289,79 +325,35 @@ def choseNameWindow():
                     pygame.draw.rect(surface, (BLACK), (xValue + (j * 120) - 50, yValue + (i * 120) - 50, 120, 120), 2)
                     if start[i][j] != 0 and start[i][j] != lastMoveVal:
                         if start[i][j] > 9:
-                            continueMessage = font.render(str(start[i][j]), True, BLACK)
+                            continueMessage = fontBig.render(str(start[i][j]), True, BLACK)
                             surface.blit(continueMessage, (xValue + (j * 120) - 10, yValue + (i * 120)))
                         else:
-                            continueMessage = font.render(str(start[i][j]), True, BLACK)
+                            continueMessage = fontBig.render(str(start[i][j]), True, BLACK)
                             surface.blit(continueMessage, (xValue + (j * 120), yValue + (i * 120)))
                     if start[i][j] == lastMoveVal:
                         if start[i][j] > 9:
-                            continueMessage = font.render(str(start[i][j]), True, RED)
+                            continueMessage = fontBig.render(str(start[i][j]), True, RED)
                             surface.blit(continueMessage, (xValue + (j * 120) - 10, yValue + (i * 120)))
                         else:
-                            continueMessage = font.render(str(start[i][j]), True, RED)
+                            continueMessage = fontBig.render(str(start[i][j]), True, RED)
                             surface.blit(continueMessage, (xValue + (j * 120), yValue + (i * 120)))
 
+            complexityMessage = fontSmall.render("Complejidad heuristica " + str(START_COMPLEXITY), True, BLACK)
+            complexityMessage_rect = complexityMessage.get_rect(center=(SCREEN_WIDTH/2, 620))
+            surface.blit(complexityMessage, complexityMessage_rect)
+
+            timeMessage = fontSmall.render("Solución encontrada en " + str(TIME_SEARCHING) + " segundos", True, BLACK)
+            timeMessage_rect = timeMessage.get_rect(center=(SCREEN_WIDTH/2, 650))
+            surface.blit(timeMessage, timeMessage_rect)
+
+            movementsMessage = fontSmall.render(str(MOVEMENTS_NEEDED) + " movimientos necesarios", True, BLACK)
+            movementsMessage_rect = movementsMessage.get_rect(center=(SCREEN_WIDTH/2, 680))
+            surface.blit(movementsMessage, movementsMessage_rect)
+
         pygame.display.update()
 
-
-def openWindow():
-    global start, moveName, lastMoveVal
-
-
-
-    pygame.init()
-
-    surface = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("Proyecto: 15-Puzzle")
-    running = True #Estado de la ventana
-    font = pygame.font.SysFont("italic", 60)
-
-
-    while running:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                running = False
-                pygame.quit()
-                sys.exit()
-
-
-        surface.fill(WHITE)
-
-        continueMessage = font.render(moveName, True, BLACK)
-        continueMessage_rect = continueMessage.get_rect(center=(SCREEN_WIDTH/2, 720))
-        surface.blit(continueMessage, continueMessage_rect)
-
-        titleMessage = font.render("15-Puzzle", True, BLACK)
-        titleMessage_rect = titleMessage.get_rect(center=(SCREEN_WIDTH/2, 50))
-        surface.blit(titleMessage, titleMessage_rect)
-
-        xValue = 200
-        yValue = 150
-        
-        for i in range(0, len(start)):
-            for j in range(0, len(start[i])):
-                pygame.draw.rect(surface, (BLACK), (xValue + (j * 120) - 50, yValue + (i * 120) - 50, 120, 120), 2)
-                if start[i][j] != 0 and start[i][j] != lastMoveVal:
-                    if start[i][j] > 9:
-                        continueMessage = font.render(str(start[i][j]), True, BLACK)
-                        surface.blit(continueMessage, (xValue + (j * 120) - 10, yValue + (i * 120)))
-                    else:
-                        continueMessage = font.render(str(start[i][j]), True, BLACK)
-                        surface.blit(continueMessage, (xValue + (j * 120), yValue + (i * 120)))
-                if start[i][j] == lastMoveVal:
-                    if start[i][j] > 9:
-                        continueMessage = font.render(str(start[i][j]), True, RED)
-                        surface.blit(continueMessage, (xValue + (j * 120) - 10, yValue + (i * 120)))
-                    else:
-                        continueMessage = font.render(str(start[i][j]), True, RED)
-                        surface.blit(continueMessage, (xValue + (j * 120), yValue + (i * 120)))
-        
-        pygame.display.update()
-
-
-
-choseNameWindow()
+if __name__ == "__main__":
+    choseNameWindow()
 
 
 
